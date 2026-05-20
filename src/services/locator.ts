@@ -12,6 +12,7 @@ import { geocodePostcode } from "./geocoding.js";
 import { getDriveTimes } from "./distance.js";
 import { loadLocations } from "../utils/locations-loader.js";
 import { calculateHaversineDistance, metersToKilometers, secondsToMinutes } from "../utils/distance-calc.js";
+import { generateMapsUrl } from "../utils/maps-url.js";
 import { Location, WebhookResponse } from "../types/index.js";
 
 interface LocatorResult {
@@ -22,6 +23,7 @@ interface LocatorResult {
     lat: number;
     lng: number;
   };
+  mapsUrl: string;
 }
 
 /**
@@ -88,6 +90,7 @@ export async function findClosestLocation(postcode: string): Promise<LocatorResu
         lat: userCoords.lat,
         lng: userCoords.lng,
       },
+      mapsUrl: generateMapsUrl(closestLocation.latitude, closestLocation.longitude, closestLocation.name),
     };
   } catch (error) {
     console.error("[Locator] Error:", error);
@@ -111,6 +114,7 @@ export function formatWebhookResponse(result: LocatorResult): WebhookResponse {
       driveTimeMinutes: result.driveTimeMinutes,
       directDistanceKm: result.directDistanceKm,
       coordinates: result.coordinates,
+      mapsUrl: result.mapsUrl,
     },
   };
 }

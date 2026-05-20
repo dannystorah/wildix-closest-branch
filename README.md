@@ -136,7 +136,7 @@ curl -X POST http://localhost:3000/webhook/postcode \
     "closestLocation": {
       "id": "store_001",
       "name": "London HQ",
-      "postcode": "SW1A 1AA",
+      "address": "123 Main Street, London, SW1A 1AA",
       "phone": "+44 20 7946 0958"
     },
     "driveTimeMinutes": 15,
@@ -144,10 +144,18 @@ curl -X POST http://localhost:3000/webhook/postcode \
     "coordinates": {
       "lat": 51.5007,
       "lng": -0.1246
-    }
+    },
+    "mapsUrl": "https://maps.google.com/?q=51.5007%2C-0.1246"
   }
 }
 ```
+
+**Response fields:**
+- `closestLocation` - The nearest store/branch location details
+- `driveTimeMinutes` - Estimated drive time from the customer's postcode
+- `directDistanceKm` - Straight-line distance in kilometers
+- `coordinates` - GPS coordinates of the customer's postcode
+- `mapsUrl` - Google Maps link to the closest location (useful for SMS or voice agent readout)
 
 **Response (Error):**
 ```json
