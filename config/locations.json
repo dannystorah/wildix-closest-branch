@@ -1,0 +1,28 @@
+{
+  "locations": [
+    {
+      "id": "store_001",
+      "name": "London HQ",
+      "postcode": "SW1A 1AA",
+      "latitude": 51.5007,
+      "longitude": -0.1246,
+      "phone": "+44 20 7946 0958"
+    },
+    {
+      "id": "store_002",
+      "name": "Manchester Branch",
+      "postcode": "M1 1AD",
+      "latitude": 53.4839,
+      "longitude": -2.2413,
+      "phone": "+44 161 228 2828"
+    },
+    {
+      "id": "store_003",
+      "name": "Edinburgh Office",
+      "postcode": "EH1 3AA",
+      "latitude": 55.9533,
+      "longitude": -3.1889,
+      "phone": "+44 131 473 2500"
+    }
+  ]
+}
