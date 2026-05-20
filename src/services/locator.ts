@@ -36,8 +36,8 @@ export async function findClosestLocation(postcode: string): Promise<LocatorResu
     const userCoords = await geocodePostcode(postcode);
 
     // Step 2: Load all predefined locations
-    console.log("[Locator] Step 2: Loading predefined locations");
-    const locations = loadLocations();
+    console.log("[Locator] Step 2: Loading and geocoding predefined locations");
+    const locations = await loadLocations();
 
     if (locations.length === 0) {
       throw new Error("No locations configured");
@@ -105,9 +105,9 @@ export function formatWebhookResponse(result: LocatorResult): WebhookResponse {
       closestLocation: {
         id: result.closestLocation.id,
         name: result.closestLocation.name,
-        postcode: result.closestLocation.postcode,
+        address: result.closestLocation.address,
         phone: result.closestLocation.phone,
-      } as Location,
+      } as any,
       driveTimeMinutes: result.driveTimeMinutes,
       directDistanceKm: result.directDistanceKm,
       coordinates: result.coordinates,

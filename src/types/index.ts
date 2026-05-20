@@ -2,13 +2,24 @@
  * types/index.ts - Shared TypeScript interfaces for the service
  */
 
-export interface Location {
+/**
+ * LocationInput - What customers provide in locations.json
+ * Only requires address, no need for manual coordinates
+ */
+export interface LocationInput {
   id: string;
   name: string;
-  postcode: string;
+  address: string;
+  phone?: string;
+}
+
+/**
+ * Location - Internal representation with geocoded coordinates
+ * Populated at startup from LocationInput
+ */
+export interface Location extends LocationInput {
   latitude: number;
   longitude: number;
-  phone?: string;
 }
 
 export interface LocationsConfig {

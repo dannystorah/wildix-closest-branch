@@ -25,7 +25,7 @@ Copy the example file and add your actual store/branch locations:
 cp locations.example.json config/locations.json
 ```
 
-Edit `config/locations.json` and add your locations:
+Edit `config/locations.json` and add your locations. **All you need is the address** - coordinates are automatically looked up:
 
 ```json
 {
@@ -33,18 +33,15 @@ Edit `config/locations.json` and add your locations:
     {
       "id": "store_001",
       "name": "Your Store Name",
-      "postcode": "SW1A 1AA",
-      "latitude": 51.5007,
-      "longitude": -0.1246,
+      "address": "123 Main Street, London, UK",
       "phone": "+44 20 XXXX XXXX"
     }
   ]
 }
 ```
 
-**To get latitude/longitude:**
-- Use Google Maps: right-click on location → coordinates appear
-- Or use: https://www.latlong.net/
+**That's it!** The service automatically geocodes each address on startup to get coordinates. No manual coordinate entry needed.
+
 
 ### Step 3: Setup Environment Variables
 
@@ -250,17 +247,17 @@ When Wildix needs to find the closest location for a customer, the webhook endpo
 
 ## Customizing Locations
 
-Edit `config/locations.json` to add, remove, or update locations. The service will automatically reload the locations on restart.
+Edit `config/locations.json` to add, remove, or update locations. The service automatically geocodes each address on startup and will reload when you restart.
 
 **Required fields:**
 - `id`: Unique identifier (e.g., "store_001")
 - `name`: Store/branch name
-- `postcode`: UK postcode
-- `latitude`: Location latitude
-- `longitude`: Location longitude
+- `address`: Full address (street, city, postcode, country - any format Google Maps understands)
 
 **Optional fields:**
 - `phone`: Store phone number
+
+The service handles the geocoding automatically - just provide valid addresses.
 
 ## Development
 

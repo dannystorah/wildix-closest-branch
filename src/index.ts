@@ -10,6 +10,7 @@
 import express from "express";
 import { config } from "./config/environment.js";
 import webhookRoutes from "./routes/webhook.js";
+import { loadLocations } from "./utils/locations-loader.js";
 
 // ====================================
 // Server Setup
@@ -73,6 +74,11 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 async function runServer() {
   try {
+    // Load and geocode locations on startup
+    console.log("[Server] Initializing location data...");
+    await loadLocations();
+    console.log("[Server] Location data loaded successfully");
+
     app.listen(config.PORT, () => {
       console.log(`[Server] Starting Wildix Closest Location service`);
       console.log(`[Server] Listening on port ${config.PORT}`);
