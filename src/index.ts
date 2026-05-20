@@ -17,7 +17,9 @@ import webhookRoutes from "./routes/webhook.js";
 
 const app = express();
 
-// Middleware
+// Middleware - capture raw text before JSON parsing
+// This allows us to handle form-encoded and raw text payloads
+app.use("/webhook", express.text({ type: () => true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -42,6 +44,7 @@ app.get("/", (req, res) => {
     description: "Find closest store/branch location by UK postcode with drive time",
     endpoints: {
       webhook: "POST /webhook/postcode",
+      debug: "GET /webhook/debug",
       health: "GET /webhook/health",
     },
   });
@@ -83,4 +86,5 @@ async function runServer() {
 }
 
 runServer();
+
 

@@ -97,11 +97,38 @@ You should see:
 
 Receive a UK postcode and get the closest location with drive time.
 
-**Request:**
+**Flexible input formats** - The service accepts postcodes in multiple formats:
+
+1. **JSON body:**
 ```bash
 curl -X POST http://localhost:3000/webhook/postcode \
   -H "Content-Type: application/json" \
   -d '{"postcode": "SW1A 1AA"}'
+```
+
+2. **Form-encoded:**
+```bash
+curl -X POST http://localhost:3000/webhook/postcode \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "postcode=SW1A1AA"
+```
+
+3. **Query string:**
+```bash
+curl -X POST http://localhost:3000/webhook/postcode?postcode=SW1A1AA
+```
+
+4. **Custom headers:**
+```bash
+curl -X POST http://localhost:3000/webhook/postcode \
+  -H "x-postcode: SW1A1AA"
+```
+
+5. **Raw text:**
+```bash
+curl -X POST http://localhost:3000/webhook/postcode \
+  -H "Content-Type: text/plain" \
+  -d "SW1A1AA"
 ```
 
 **Response (Success):**
@@ -133,6 +160,29 @@ curl -X POST http://localhost:3000/webhook/postcode \
 }
 ```
 
+### GET /webhook/debug
+
+Debug endpoint to see what's arriving in webhook requests. Useful for troubleshooting format issues.
+
+**Request:**
+```bash
+curl http://localhost:3000/webhook/debug
+```
+
+**Response:**
+```json
+{
+  "method": "GET",
+  "url": "/webhook/debug",
+  "headers": { ... },
+  "query": { ... },
+  "bodyType": "string",
+  "body": "SW1A1AA",
+  "bodyParsed": null,
+  "detectedPostcode": "SW1A 1AA"
+}
+```
+
 ### GET /webhook/health
 
 Health check endpoint.
@@ -156,6 +206,7 @@ Service information.
   "description": "Find closest store/branch location by UK postcode with drive time",
   "endpoints": {
     "webhook": "POST /webhook/postcode",
+    "debug": "GET /webhook/debug",
     "health": "GET /webhook/health"
   }
 }
@@ -163,18 +214,39 @@ Service information.
 
 ## Integrating with Wildix
 
-When Wildix needs to find the closest location for a customer:
+When Wildix needs to find the closest location for a customer, the webhook endpoint accepts postcodes in **multiple formats**:
 
-1. **Configure the Wildix webhook**:
-   - Endpoint: `http://your-server:3000/webhook/postcode`
-   - Method: `POST`
-   - Content-Type: `application/json`
-   - Body: `{"postcode": "<customer_postcode>"}`
+1. **Configure the Wildix webhook** - Choose any format that works with your system:
+   - **JSON format (recommended):**
+     - Endpoint: `http://your-server:3000/webhook/postcode`
+     - Method: `POST`
+     - Content-Type: `application/json`
+     - Body: `{"postcode": "<customer_postcode>"}`
+   
+   - **Form-encoded format:**
+     - Content-Type: `application/x-www-form-urlencoded`
+     - Body: `postcode=<customer_postcode>`
+   
+   - **Query string format:**
+     - URL: `http://your-server:3000/webhook/postcode?postcode=<customer_postcode>`
+     - Method: `POST` or `GET`
+   
+   - **Header format:**
+     - Header: `x-postcode: <customer_postcode>`
+   
+   - **Raw text format:**
+     - Content-Type: `text/plain`
+     - Body: `<customer_postcode>`
 
 2. **Parse the response** to get:
-   - Closest location name and phone
-   - Drive time in minutes
-   - Coordinates of the customer's postcode
+   - `closestLocation`: name, address, phone of the closest store
+   - `driveTimeMinutes`: estimated drive time
+   - `directDistanceKm`: straight-line distance
+   - `coordinates`: GPS coordinates of the customer's postcode
+
+3. **Troubleshooting** - If you're unsure what format is arriving:
+   - Use the debug endpoint: `GET /webhook/debug` or `POST /webhook/debug`
+   - It will show you exactly what was received and what postcode was detected
 
 ## Customizing Locations
 
