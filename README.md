@@ -1,271 +1,330 @@
-# Google Maps MCP Server Enhanced
+# Wildix Closest Location Service
 
-A comprehensive Model Context Protocol (MCP) server that provides 14 powerful Google Maps tools for location services, visual mapping, weather data, and environmental information. Perfect for camping trip planning, outdoor research, location analysis, and any application requiring rich geographic data.
+A standalone Node.js service that receives UK postcodes via webhook and returns the closest pre-defined store/branch location with current drive time information from Google Maps API.
 
-## 🌟 Features
+## How It Works
 
-### 🗺️ **Core Mapping (6 tools)**
-- **Geocoding**: Convert addresses to coordinates
-- **Reverse Geocoding**: Convert coordinates to addresses  
-- **Places Search**: Find businesses, landmarks, and points of interest
-- **Place Details**: Get comprehensive information about specific places
-- **Distance Matrix**: Calculate travel times and distances between multiple points
-- **Directions**: Get detailed turn-by-turn directions with multiple travel modes
-
-### 📸 **Visual Mapping (2 tools)**
-- **Street View**: Get panoramic street-level imagery with customizable viewing angles
-- **Static Maps**: Generate static map images in multiple styles (roadmap, satellite, terrain, hybrid) with markers
-
-### 🌤️ **Environmental Data (6 tools)**
-- **Weather**: Current conditions and forecasts for trip planning
-- **Air Quality**: Air quality indices and pollutant data for outdoor activities
-- **Solar**: Solar irradiance data for solar power planning at campsites
-- **Pollen**: Pollen and allergy information for outdoor activities
-- **Elevation**: Elevation data for terrain analysis
-- **Enhanced Routing**: Advanced route planning with traffic awareness
-
-## 🎯 Perfect For
-
-- **🏕️ Camping & Outdoor Planning**: Weather, terrain, and site analysis
-- **🔍 Research Projects**: Location data gathering and environmental monitoring  
-- **🚗 Travel Applications**: Route planning with real-time conditions
-- **📊 Data Analysis**: Geographic data collection and visualization
-- **🏢 Business Applications**: Location intelligence and market analysis
-
-## 📋 Prerequisites
-
-- **Node.js** (v18+)
-- **Google Cloud Platform Account** with billing enabled
-- **Google Maps API Key** with required APIs enabled
-
-## ⚙️ Setup
-
-### 1. **Clone and Install**
-```bash
-git clone https://github.com/yourusername/google-maps-mcp-server.git
-cd google-maps-mcp-server
-npm install
+```
+Customer sends postcode → Service geocodes it → Finds closest location → Gets drive time → Returns result
 ```
 
-### 2. **Google Cloud Setup**
-Enable these APIs in [Google Cloud Console](https://console.cloud.google.com):
+## Quick Start (5 Steps)
 
-**Required APIs:**
-- Maps JavaScript API
-- Geocoding API  
-- Places API
-- Directions API
-- Distance Matrix API
-- Elevation API
-- Maps Static API *(for static map images)*
-- Street View Static API *(for street view images)*
+### Step 1: Clone the Repository
 
-**Environmental APIs (Optional but Recommended):**
-- Air Quality API
-- Solar API  
-- Pollen API
-- Weather API
-
-### 3. **Get API Key**
-1. In Google Cloud Console → APIs & Services → Credentials
-2. Create API Key
-3. Restrict the key to the APIs listed above (recommended for security)
-
-### 4. **Build the Server**
 ```bash
-npm run build
+git clone <this-repo>
+cd wildix-closest-branch
 ```
 
-## 🔧 Claude Desktop Integration
+### Step 2: Configure Your Store Locations
 
-Add to your `claude_desktop_config.json`:
+Copy the example file and add your actual store/branch locations:
+
+```bash
+cp locations.example.json config/locations.json
+```
+
+Edit `config/locations.json` and add your locations. **All you need is the address** - coordinates are automatically looked up:
 
 ```json
 {
-  "mcpServers": {
-    "google-maps": {
-      "command": "node", 
-      "args": ["/path/to/google-maps-mcp-server/dist/index.js"],
-      "env": {
-        "GOOGLE_MAPS_API_KEY": "your-api-key-here"
-      }
+  "locations": [
+    {
+      "id": "store_001",
+      "name": "Your Store Name",
+      "address": "123 Main Street, London, UK",
+      "phone": "+44 20 XXXX XXXX"
+    }
+  ]
+}
+```
+
+**That's it!** The service automatically geocodes each address on startup to get coordinates. No manual coordinate entry needed.
+
+
+### Step 3: Setup Environment Variables
+
+Copy the environment template and add your Google Maps API key:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and add your Google Maps API key:
+
+```
+GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
+PORT=3000
+NODE_ENV=production
+LOG_LEVEL=info
+```
+
+**To get a Google Maps API Key:**
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project
+3. Enable these APIs:
+   - Geocoding API
+   - Distance Matrix API
+4. Create an API key (under Credentials)
+5. Paste it in `.env`
+
+### Step 4: Install Dependencies
+
+```bash
+npm install
+```
+
+### Step 5: Start the Service
+
+```bash
+npm start
+```
+
+You should see:
+```
+[Server] Starting Wildix Closest Location service
+[Server] Listening on port 3000
+[Server] Ready to receive webhook requests at POST /webhook/postcode
+```
+
+## API Endpoints
+
+### POST /webhook/postcode
+
+Receive a UK postcode and get the closest location with drive time.
+
+**Flexible input formats** - The service accepts postcodes in multiple formats:
+
+1. **JSON body:**
+```bash
+curl -X POST http://localhost:3000/webhook/postcode \
+  -H "Content-Type: application/json" \
+  -d '{"postcode": "SW1A 1AA"}'
+```
+
+2. **Form-encoded:**
+```bash
+curl -X POST http://localhost:3000/webhook/postcode \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "postcode=SW1A1AA"
+```
+
+3. **Query string:**
+```bash
+curl -X POST http://localhost:3000/webhook/postcode?postcode=SW1A1AA
+```
+
+4. **Custom headers:**
+```bash
+curl -X POST http://localhost:3000/webhook/postcode \
+  -H "x-postcode: SW1A1AA"
+```
+
+5. **Raw text:**
+```bash
+curl -X POST http://localhost:3000/webhook/postcode \
+  -H "Content-Type: text/plain" \
+  -d "SW1A1AA"
+```
+
+**Response (Success):**
+```json
+{
+  "success": true,
+  "data": {
+    "closestLocation": {
+      "id": "store_001",
+      "name": "London HQ",
+      "postcode": "SW1A 1AA",
+      "phone": "+44 20 7946 0958"
+    },
+    "driveTimeMinutes": 15,
+    "directDistanceKm": 2.3,
+    "coordinates": {
+      "lat": 51.5007,
+      "lng": -0.1246
     }
   }
 }
 ```
 
-## 🛠️ Tool Reference
-
-### 📍 **Location Services**
-| Tool | Purpose | Example Use |
-|------|---------|-------------|
-| `maps_geocode` | Address → Coordinates | "Convert 'Yellowstone National Park' to lat/lng" |
-| `maps_reverse_geocode` | Coordinates → Address | "What's at coordinates 44.4280, -110.5885?" |
-| `maps_search_places` | Find nearby places | "Find campgrounds near Yellowstone" |
-| `maps_place_details` | Detailed place info | "Get hours, reviews, contact info for a campground" |
-
-### 🚗 **Navigation & Distance**
-| Tool | Purpose | Example Use |
-|------|---------|-------------|
-| `maps_directions` | Turn-by-turn directions | "Driving directions from Chicago to Yellowstone" |
-| `maps_distance_matrix` | Multi-point distances | "Travel times between 5 potential campsites" |
-| `maps_routes` | Enhanced routing | "Optimal route avoiding traffic and tolls" |
-| `maps_elevation` | Terrain elevation | "Elevation profile for hiking trail" |
-
-### 📸 **Visual Mapping**
-| Tool | Purpose | Example Use |
-|------|---------|-------------|
-| `maps_street_view` | Street-level imagery | "See what the campground entrance looks like" |
-| `maps_static_map` | Static map images | "Satellite view of research area with markers" |
-
-### 🌤️ **Environmental Data**
-| Tool | Purpose | Example Use |
-|------|---------|-------------|
-| `maps_weather` | Weather forecasts | "5-day forecast for camping trip" |
-| `maps_air_quality` | Air pollution data | "Air quality for outdoor activities" |
-| `maps_solar` | Solar irradiance | "Solar panel potential at campsite" |
-| `maps_pollen` | Allergy information | "Pollen levels for sensitive individuals" |
-
-## 💡 Usage Examples
-
-### **Trip Planning Workflow**
-```bash
-# 1. Find potential campsites
-maps_search_places(query="campgrounds near Glacier National Park")
-
-# 2. Get detailed information
-maps_place_details(place_id="ChIJ...")
-
-# 3. Check weather conditions  
-maps_weather(latitude=48.7596, longitude=-113.7870, forecast_days=5)
-
-# 4. Get visual confirmation
-maps_street_view(location="Going-to-the-Sun Road entrance")
-maps_static_map(center="48.7596,-113.7870", maptype="terrain", zoom=12)
-
-# 5. Plan optimal route
-maps_directions(origin="Chicago, IL", destination="Glacier National Park")
+**Response (Error):**
+```json
+{
+  "success": false,
+  "error": "Invalid UK postcode format"
+}
 ```
 
-### **Research Documentation**
+### GET /webhook/debug
+
+Debug endpoint to see what's arriving in webhook requests. Useful for troubleshooting format issues.
+
+**Request:**
 ```bash
-# Comprehensive location analysis
-maps_geocode(address="Remote research location")
-maps_elevation(locations=[{latitude: 45.123, longitude: -110.456}])
-maps_air_quality(latitude=45.123, longitude=-110.456)
-maps_static_map(center="45.123,-110.456", maptype="satellite", 
-               markers=[{location: "45.123,-110.456", color: "red"}])
+curl http://localhost:3000/webhook/debug
 ```
 
-## 🎨 Visual Capabilities
+**Response:**
+```json
+{
+  "method": "GET",
+  "url": "/webhook/debug",
+  "headers": { ... },
+  "query": { ... },
+  "bodyType": "string",
+  "body": "SW1A1AA",
+  "bodyParsed": null,
+  "detectedPostcode": "SW1A 1AA"
+}
+```
 
-### **Street View Options**
-- **Viewing Angles**: Control heading (0-360°), pitch (-90° to 90°), field of view (10-120°)
-- **Image Sizes**: Up to 640x640 pixels
-- **Location Input**: Addresses or exact coordinates
+### GET /webhook/health
 
-### **Static Map Styles**
-- **Roadmap**: Standard road map view
-- **Satellite**: Aerial imagery  
-- **Terrain**: Physical features and elevation
-- **Hybrid**: Satellite imagery with road labels
+Health check endpoint.
 
-### **Custom Markers**
-- **Colors**: red, blue, green, purple, yellow, gray, orange, white
-- **Labels**: A-Z, 0-9 for identification
-- **Multiple Points**: Mark routes, waypoints, points of interest
+**Response:**
+```json
+{
+  "status": "ok",
+  "service": "wildix-closest-location"
+}
+```
 
-## 🔒 Security Best Practices
+### GET /
 
-### **API Key Security**
-- ✅ Use environment variables (never commit keys to code)
-- ✅ Restrict API key to only required APIs
-- ✅ Set up API key restrictions (HTTP referrers, IP addresses)
-- ✅ Monitor API usage in Google Cloud Console
-- ✅ Rotate keys regularly
+Service information.
 
-### **Usage Monitoring**
-- Set up billing alerts for unexpected usage
-- Monitor API quotas and rate limits
-- Use Cloud Monitoring for performance tracking
+```json
+{
+  "service": "wildix-closest-location",
+  "version": "1.0.0",
+  "description": "Find closest store/branch location by UK postcode with drive time",
+  "endpoints": {
+    "webhook": "POST /webhook/postcode",
+    "debug": "GET /webhook/debug",
+    "health": "GET /webhook/health"
+  }
+}
+```
 
-## 💰 Cost Management
+## Integrating with Wildix
 
-### **Free Tier Usage**
-- Most APIs include generous free monthly quotas
-- Visual APIs (Street View, Static Maps) have free usage limits
-- Environmental APIs may have different pricing
+When Wildix needs to find the closest location for a customer, the webhook endpoint accepts postcodes in **multiple formats**:
 
-### **Cost Optimization Tips**
-- Cache results when appropriate (especially for static location data)
-- Use batch requests (Distance Matrix) for multiple calculations
-- Choose appropriate detail levels for Places API requests
+1. **Configure the Wildix webhook** - Choose any format that works with your system:
+   - **JSON format (recommended):**
+     - Endpoint: `http://your-server:3000/webhook/postcode`
+     - Method: `POST`
+     - Content-Type: `application/json`
+     - Body: `{"postcode": "<customer_postcode>"}`
+   
+   - **Form-encoded format:**
+     - Content-Type: `application/x-www-form-urlencoded`
+     - Body: `postcode=<customer_postcode>`
+   
+   - **Query string format:**
+     - URL: `http://your-server:3000/webhook/postcode?postcode=<customer_postcode>`
+     - Method: `POST` or `GET`
+   
+   - **Header format:**
+     - Header: `x-postcode: <customer_postcode>`
+   
+   - **Raw text format:**
+     - Content-Type: `text/plain`
+     - Body: `<customer_postcode>`
 
-## 🐛 Troubleshooting
+2. **Parse the response** to get:
+   - `closestLocation`: name, address, phone of the closest store
+   - `driveTimeMinutes`: estimated drive time
+   - `directDistanceKm`: straight-line distance
+   - `coordinates`: GPS coordinates of the customer's postcode
 
-### **Common Issues**
-| Error | Cause | Solution |
-|-------|-------|----------|
-| `REQUEST_DENIED` | API not enabled | Enable required APIs in Google Cloud Console |
-| `INVALID_REQUEST` | Missing parameters | Check required parameters for each tool |
-| `OVER_QUERY_LIMIT` | Quota exceeded | Check billing and quota limits |
-| `ZERO_RESULTS` | No data available | Try broader search criteria or different location |
+3. **Troubleshooting** - If you're unsure what format is arriving:
+   - Use the debug endpoint: `GET /webhook/debug` or `POST /webhook/debug`
+   - It will show you exactly what was received and what postcode was detected
 
-### **Debug Mode**
+## Customizing Locations
+
+Edit `config/locations.json` to add, remove, or update locations. The service automatically geocodes each address on startup and will reload when you restart.
+
+**Required fields:**
+- `id`: Unique identifier (e.g., "store_001")
+- `name`: Store/branch name
+- `address`: Full address (street, city, postcode, country - any format Google Maps understands)
+
+**Optional fields:**
+- `phone`: Store phone number
+
+The service handles the geocoding automatically - just provide valid addresses.
+
+## Development
+
+Run with live reload:
+
 ```bash
-export DEBUG=true
 npm run dev
 ```
 
-## 📊 API Quotas Reference
+## Troubleshooting
 
-| API | Free Tier Limit | Rate Limit |
-|-----|----------------|------------|
-| Geocoding | 40,000/month | 50 QPS |
-| Places Search | 2,500/month | 10 QPS |
-| Directions | 2,500/month | 50 QPS |
-| Street View Static | 28,000/month | 100 QPS |
-| Static Maps | 28,000/month | 100 QPS |
+**"GOOGLE_MAPS_API_KEY environment variable is not set"**
+- Make sure `.env` file exists with your API key
 
-*Check Google's current pricing for up-to-date information*
+**"Locations config not found at config/locations.json"**
+- Copy `locations.example.json` to `config/locations.json`
+- Add your store locations
 
-## 🚀 Running the Server
+**"Invalid UK postcode format"**
+- Postcode must be alphanumeric, 6-7 characters (without spaces)
+- Valid examples: "SW1A1AA", "M11AD", "EH13AA"
 
-```bash
-# Development mode with auto-rebuild
-npm run dev
+**"No results found for postcode"**
+- Verify the postcode is a valid UK postcode
+- Check your Google Maps API key has Geocoding API enabled
 
-# Production mode
-npm run build && npm start
+**"Cannot calculate distance"**
+- Verify your store locations have correct latitude/longitude
+- Check your Google Maps API key has Distance Matrix API enabled
+
+## Deployment
+
+### Docker (Optional)
+
+Create a `Dockerfile`:
+
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+EXPOSE 3000
+CMD ["npm", "start"]
 ```
 
-## 🏗️ Architecture
+Build and run:
 
-- **TypeScript**: Full type safety and modern JS features
-- **Modular Design**: Organized by functionality (handlers, tools, types)
-- **Error Handling**: Comprehensive validation and error responses  
-- **Extensible**: Easy to add new Google Maps APIs
-- **Production Ready**: Built with reliability and performance in mind
+```bash
+docker build -t wildix-closest-location .
+docker run -p 3000:3000 --env-file .env wildix-closest-location
+```
 
-## 🤝 Contributing
+### Traditional Server
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+1. Install Node.js 18+
+2. Clone repo
+3. Configure locations and .env
+4. `npm install && npm run build`
+5. Use `pm2` or similar to keep the service running
+6. Ensure firewall allows port 3000
 
-## 📄 License
+## License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+MIT
 
-## 🎯 Use Cases
+## Support
 
-- **🏕️ Camping Trip Planning**: Weather, terrain, campground research
-- **🔬 Field Research**: Environmental data collection and site analysis  
-- **🚚 Logistics**: Route optimization and travel planning
-- **🏡 Real Estate**: Location analysis and neighborhood research
-- **📱 Mobile Apps**: Location-based services and mapping features
-- **🎨 Creative Projects**: Map visualization and geographic art
-
-Transform your location-based projects with comprehensive Google Maps integration! 🗺️✨
+For issues or questions, contact your Wildix administrator.

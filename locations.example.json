@@ -1,0 +1,22 @@
+{
+  "locations": [
+    {
+      "id": "store_001",
+      "name": "London HQ",
+      "address": "25 Eccleston Street, London SW1W 9NF",
+      "phone": "+44 20 7946 0958"
+    },
+    {
+      "id": "store_002",
+      "name": "Manchester Branch",
+      "address": "Deansgate, Manchester M1 1AD",
+      "phone": "+44 161 228 2828"
+    },
+    {
+      "id": "store_003",
+      "name": "Edinburgh Office",
+      "address": "Royal Mile, Edinburgh EH1 3AA",
+      "phone": "+44 131 473 2500"
+    }
+  ]
+}

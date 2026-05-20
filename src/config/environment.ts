@@ -1,34 +1,26 @@
 /**
- * environment.ts - Environment variables & API keys
+ * config/environment.ts - Environment variables & configuration
  *
- * This file handles the retrieval of environment variables, specifically the Google Maps API key.
- * It ensures that the necessary API key is present before the server starts.
- *
- * Dependencies: None
- *
- * @author Cline
+ * Loads and validates environment variables from .env file
  */
 
-// ====================================
-// Environment Configuration
-// ====================================
+import * as dotenv from "dotenv";
 
-/**
- * Retrieves the Google Maps API key from environment variables.
- * If the key is not set, it logs an error and exits the process.
- *
- * @returns {string} The Google Maps API key.
- */
-function getApiKey(): string {
-  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
-  if (!apiKey) {
-    console.error("GOOGLE_MAPS_API_KEY environment variable is not set");
+// Load environment variables from .env file
+dotenv.config();
+
+function getEnvVar(name: string, defaultValue?: string): string {
+  const value = process.env[name];
+  if (!value && !defaultValue) {
+    console.error(`Environment variable ${name} is not set`);
     process.exit(1);
   }
-  return apiKey;
+  return value || defaultValue || "";
 }
 
-/**
- * The Google Maps API Key.
- */
-export const GOOGLE_MAPS_API_KEY = getApiKey();
+export const config = {
+  GOOGLE_MAPS_API_KEY: getEnvVar("GOOGLE_MAPS_API_KEY"),
+  PORT: parseInt(getEnvVar("PORT", "3000")),
+  NODE_ENV: getEnvVar("NODE_ENV", "development"),
+  LOG_LEVEL: getEnvVar("LOG_LEVEL", "info"),
+};
