@@ -4,7 +4,7 @@
 
 /**
  * Haversine formula to calculate straight-line distance between two coordinates
- * Returns distance in kilometers
+ * Returns distance in METERS
  */
 export function calculateHaversineDistance(
   lat1: number,
@@ -12,7 +12,7 @@ export function calculateHaversineDistance(
   lat2: number,
   lon2: number
 ): number {
-  const R = 6371; // Earth's radius in kilometers
+  const R = 6371000; // Earth's radius in METERS (not km)
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
 
@@ -24,7 +24,7 @@ export function calculateHaversineDistance(
       Math.sin(dLon / 2);
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
+  return R * c; // Returns meters
 }
 
 /**
@@ -40,3 +40,4 @@ export function secondsToMinutes(seconds: number): number {
 export function metersToKilometers(meters: number): number {
   return Math.round((meters / 1000) * 10) / 10;
 }
+

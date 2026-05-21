@@ -56,6 +56,7 @@ export interface WebhookResponse {
       lat: number;
       lng: number;
     };
+    mapsUrl: string;
   };
   error?: string;
 }
